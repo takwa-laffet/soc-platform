@@ -37,20 +37,26 @@ app.config['JWT_COOKIE_SECURE'] = JWT_COOKIE_SECURE
 app.config['JWT_COOKIE_SAMESITE'] = JWT_COOKIE_SAMESITE
 app.config['JWT_COOKIE_CSRF_PROTECT'] = JWT_COOKIE_CSRF_PROTECT
 
+# Add production domain pattern support
+import os
+render_domain = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
+production_origins = [f"https://{render_domain}"] if render_domain else []
+
 CORS(app, 
      origins=[
+         *production_origins,
          "http://localhost:5173",
          "http://127.0.0.1:5173",
          "http://localhost:3000", 
          "http://127.0.0.1:3000",
          "http://localhost:3001",
          "http://127.0.0.1:3001",
-         re.compile(r"^http://192\\.168\\.18\\.\\d{1,3}:3000$"),
-         re.compile(r"^http://192\\.168\\.18\\.\\d{1,3}:3001$"),
-         re.compile(r"^http://192\\.168\\.18\\.\\d{1,3}:5173$"),
+         re.compile(r"^http://192\.168\.18\.\d{1,3}:3000$"),
+         re.compile(r"^http://192\.168\.18\.\d{1,3}:3001$"),
+         re.compile(r"^http://192\.168\.18\.\d{1,3}:5173$"),
          "http://localhost",
          "http://127.0.0.1",
-         re.compile(r"^http://192\\.168\\.18\\.\\d{1,3}$"),
+         re.compile(r"^http://192\.168\.18\.\d{1,3}$"),
      ], 
      supports_credentials=True)
 
@@ -63,13 +69,17 @@ supabase_client.init_bcrypt(app)
 
 # Pre-load models at startup
 print("=" * 50)
-print("Skipping ML model loading (Windows Defender blocking builds)...")
-# # from ml_loader import mitre_model, behavioral_model, vuln_model, attack_model
-# # mitre_model()
-# # behavioral_model()
-# # vuln_model()
-# # attack_model()
-# # print("All models loaded successfully!")
+print("Loading ML models...")
+try:
+    from ml_loader import mitre_model, behavioral_model, vuln_model, attack_model
+    mitre_model()
+    behavioral_model()
+    vuln_model()
+    attack_model()
+    print("All models loaded successfully!")
+except Exception as e:
+    print(f"Warning: Model loading failed: {e}")
+    print("Predictions will use fallback logic.")
 print("=" * 50)
 
 # Register routes

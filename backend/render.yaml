@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: soc-platform-backend
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --workers 2 --timeout 120 app:app
+    envVars:
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_KEY
+        sync: false
+      - key: FLASK_DEBUG
+        value: "false"
+      - key: JWT_COOKIE_SECURE
+        value: "true"
+      - key: JWT_COOKIE_CSRF_PROTECT
+        value: "true"
+      - key: OLLAMA_BASE_URL
+        value: ""
+      - key: LM_STUDIO_BASE_URL
+        value: ""
