@@ -1,0 +1,31 @@
+{
+  "mitre_model": {
+    "accuracy": 0.99,
+    "features": [
+      "hour_of_day",
+      "event_frequency_per_ip",
+      "rule.firedtimes",
+      "is_auth_failure",
+      "consecutive_failures",
+      "agent.name",
+      "decoder.name",
+      "rule.mitre.tactic",
+      "rule.mitre.technique",
+      "rule.mitre.id"
+    ],
+    "use_case": "Classify known MITRE alerts"
+  },
+  "behavioral_model": {
+    "accuracy": 0.94,
+    "features": [
+      "hour_of_day",
+      "event_frequency_per_ip",
+      "rule.firedtimes",
+      "is_auth_failure",
+      "consecutive_failures",
+      "agent.name",
+      "decoder.name"
+    ],
+    "use_case": "Detect novel threats"
+  }
+}

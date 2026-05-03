@@ -1,0 +1,1 @@
+["hour_of_day", "rule.firedtimes", "rule.level", "agent.name", "decoder.name", "is_auth_failure", "is_web_attack", "is_audit", "is_syscheck", "event_frequency_per_ip", "consecutive_failures"]

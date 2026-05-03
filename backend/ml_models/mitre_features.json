@@ -1,0 +1,1 @@
+["hour_of_day", "event_frequency_per_ip", "rule.firedtimes", "is_auth_failure", "consecutive_failures", "agent.name", "decoder.name", "rule.mitre.tactic", "rule.mitre.technique", "rule.mitre.id"]

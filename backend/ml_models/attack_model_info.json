@@ -1,0 +1,44 @@
+{
+  "model_name": "XGBoost Attack Category Classifier",
+  "version": "v1",
+  "features": [
+    "hour_of_day",
+    "rule.firedtimes",
+    "rule.level",
+    "agent.name",
+    "decoder.name",
+    "is_auth_failure",
+    "is_web_attack",
+    "is_audit",
+    "is_syscheck",
+    "event_frequency_per_ip",
+    "consecutive_failures"
+  ],
+  "classes": [
+    "Credential Access",
+    "Defense Evasion",
+    "Discovery",
+    "Execution",
+    "Impact",
+    "Initial Access",
+    "Normal",
+    "Other",
+    "Privilege Escalation",
+    "Reconnaissance"
+  ],
+  "train_accuracy": "96.17%",
+  "test_accuracy": "96.19%",
+  "smote": true,
+  "labels": {
+    "0": "Credential Access",
+    "1": "Defense Evasion",
+    "2": "Discovery",
+    "3": "Execution",
+    "4": "Impact",
+    "5": "Initial Access",
+    "6": "Normal",
+    "7": "Other",
+    "8": "Privilege Escalation",
+    "9": "Reconnaissance"
+  }
+}

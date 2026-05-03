@@ -1,0 +1,1 @@
+["base_score", "exploitability_score", "impact_score", "epss_score", "epss_perc", "cisa_kev", "attack_vector", "attack_complexity", "privileges_required", "user_interaction", "confidentiality_impact", "integrity_impact", "availability_impact", "risk_composite"]
