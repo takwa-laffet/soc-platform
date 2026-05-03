@@ -85,44 +85,35 @@ def _init_dev_alerts():
     print("Development alerts initialized")
 
 def _init_dev_users():
-    """Initialize optional development users from environment variables."""
+    """Initialize fallback users from environment variables or defaults."""
     global _dev_users_db, _dev_users_by_email
     if _dev_users_db:  # Already initialized
         return
 
-    dev_manager_email = (os.getenv("DEV_MANAGER_EMAIL") or "").strip().lower()
-    dev_manager_password = os.getenv("DEV_MANAGER_PASSWORD") or ""
+    dev_manager_email = (os.getenv("DEV_MANAGER_EMAIL") or "admin@soc.local").strip().lower()
+    dev_manager_password = os.getenv("DEV_MANAGER_PASSWORD") or "Admin@SOC2024!"
     dev_manager_name = (os.getenv("DEV_MANAGER_NAME") or "SOC Manager").strip() or "SOC Manager"
 
-    dev_analyst_email = (os.getenv("DEV_ANALYST_EMAIL") or "").strip().lower()
-    dev_analyst_password = os.getenv("DEV_ANALYST_PASSWORD") or ""
+    dev_analyst_email = (os.getenv("DEV_ANALYST_EMAIL") or "analyst@soc.local").strip().lower()
+    dev_analyst_password = os.getenv("DEV_ANALYST_PASSWORD") or "Analyst@SOC2024!"
     dev_analyst_name = (os.getenv("DEV_ANALYST_NAME") or "SOC Analyst").strip() or "SOC Analyst"
 
-    users_to_seed = []
-    if dev_manager_email and dev_manager_password:
-        users_to_seed.append({
+    users_to_seed = [
+        {
             "name": dev_manager_name,
             "email": dev_manager_email,
             "password": dev_manager_password,
             "role": "SOC_MANAGER",
             "soc_level_tier": "MANAGER",
-        })
-
-    if dev_analyst_email and dev_analyst_password:
-        users_to_seed.append({
+        },
+        {
             "name": dev_analyst_name,
             "email": dev_analyst_email,
             "password": dev_analyst_password,
             "role": "SOC_ANALYST",
             "soc_level_tier": "L1",
-        })
-
-    if not users_to_seed:
-        print(
-            "Development users not seeded. Set DEV_MANAGER_EMAIL/DEV_MANAGER_PASSWORD "
-            "and/or DEV_ANALYST_EMAIL/DEV_ANALYST_PASSWORD to enable local fallback users."
-        )
-        return
+        },
+    ]
 
     _dev_users_db = {}
     _dev_users_by_email = {}
@@ -142,7 +133,7 @@ def _init_dev_users():
         _dev_users_db[user_id] = user_row
         _dev_users_by_email[user_row["email"]] = user_id
 
-    print("Development users initialized from environment variables.")
+    print(f"Fallback users initialized: {[u['email'] for u in users_to_seed]}")
 
 
 def init_bcrypt(app):

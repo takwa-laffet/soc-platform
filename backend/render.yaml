@@ -23,4 +23,16 @@ services:
         value: ""
       - key: LM_STUDIO_BASE_URL
         value: ""
+      - key: DEV_MANAGER_EMAIL
+        value: "admin@soc.local"
+      - key: DEV_MANAGER_PASSWORD
+        value: "Admin@SOC2024!"
+      - key: DEV_MANAGER_NAME
+        value: "SOC Manager"
+      - key: DEV_ANALYST_EMAIL
+        value: "analyst@soc.local"
+      - key: DEV_ANALYST_PASSWORD
+        value: "Analyst@SOC2024!"
+      - key: DEV_ANALYST_NAME
+        value: "SOC Analyst"
     autoDeploy: true
