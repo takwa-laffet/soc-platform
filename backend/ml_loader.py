@@ -1,20 +1,63 @@
 import os
 import json
 import joblib
+from threading import RLock
 from config import ML_MODELS_DIR
 
 _cache = {}
+_cache_lock = RLock()
+
+
+def _resolve_model_filename(filename):
+    """Resolve active versioned model filename from registry, fallback to baseline file."""
+    try:
+        from model_registry import get_active_model_filename
+
+        resolved = get_active_model_filename(filename)
+        if resolved:
+            return resolved
+    except Exception:
+        pass
+    return filename
 
 
 def _load(filename):
-    if filename not in _cache:
-        path = os.path.join(ML_MODELS_DIR, filename)
-        if filename.endswith(".pkl"):
-            _cache[filename] = joblib.load(path)
-        else:
-            with open(path, "r", encoding="utf-8") as f:
-                _cache[filename] = json.load(f)
-    return _cache[filename]
+    resolved_filename = _resolve_model_filename(filename)
+
+    with _cache_lock:
+        if resolved_filename not in _cache:
+            path = os.path.join(ML_MODELS_DIR, resolved_filename)
+            if resolved_filename.endswith(".pkl"):
+                _cache[resolved_filename] = joblib.load(path)
+            else:
+                with open(path, "r", encoding="utf-8") as f:
+                    _cache[resolved_filename] = json.load(f)
+        return _cache[resolved_filename]
+
+
+def clear_cache():
+    """Clear in-memory model cache so next prediction loads latest active versions."""
+    with _cache_lock:
+        _cache.clear()
+
+
+def hot_reload_models():
+    """Thread-safe hot reload entrypoint for Flask routes/training pipeline."""
+    clear_cache()
+    # Warm critical models for lower latency on first prediction after reload.
+    warmed = []
+    for name, loader in (
+        ("mitre", mitre_model),
+        ("behavioral", behavioral_model),
+        ("attack", attack_model),
+        ("vuln", vuln_model),
+    ):
+        try:
+            loader()
+            warmed.append(name)
+        except Exception:
+            continue
+    return warmed
 
 
 # ── Models ──────────────────────────────────────────────

@@ -1,0 +1,10 @@
+{
+  "active": {
+    "xgb_mitre_model.pkl": "xgb_mitre_model.pkl",
+    "xgb_behavioral_model.pkl": "xgb_behavioral_model.pkl",
+    "xgb_attack_model.pkl": "xgb_attack_model.pkl",
+    "xgb_vuln_model.pkl": "xgb_vuln_model.pkl",
+    "xgb_attack_type_desc_model.pkl": "xgb_attack_type_desc_model.pkl"
+  },
+  "history": {}
+}

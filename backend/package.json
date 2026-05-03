@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "jspdf": "^4.2.1"
+  }
+}

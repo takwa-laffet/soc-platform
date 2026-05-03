@@ -34,6 +34,30 @@ def _extract_flat(alert, feature_list):
     return row
 
 
+def _get_path(alert, *paths, default=""):
+    """Read value from nested dict paths or flattened dotted keys."""
+    for path in paths:
+        # Try flattened key first (e.g., "_source.agent.ip" / "agent.ip").
+        if path in alert:
+            val = alert.get(path)
+            if val not in (None, ""):
+                return val
+
+        # Try nested traversal (e.g., "agent.ip").
+        parts = path.split(".")
+        cur = alert
+        for p in parts:
+            if isinstance(cur, dict):
+                cur = cur.get(p)
+            else:
+                cur = None
+                break
+        if cur not in (None, ""):
+            return cur
+
+    return default
+
+
 def _has_mitre(alert):
     """Check if alert has MITRE tactic info."""
     rule = alert.get("rule", {})
@@ -85,6 +109,65 @@ def _rule_level_severity(level):
     elif level >= 4:
         return "Low"
     return "Normal"
+
+
+def _soc_level_context(rule_level):
+    """Map Wazuh rule level to SOC triage tiers and operational guidance."""
+    level = rule_level if isinstance(rule_level, (int, float)) else 0
+
+    if level <= 0:
+        return {
+            "soc_level_tier": "L1",
+            "soc_level_label": "Low",
+            "soc_level_range": "0-4",
+            "soc_level_band": "Level 0 (Ignored)",
+            "soc_level_description": "Very common logs for statistics; no action required.",
+            "soc_immediate_action": False,
+        }
+    if level <= 4:
+        return {
+            "soc_level_tier": "L1",
+            "soc_level_label": "Low",
+            "soc_level_range": "0-4",
+            "soc_level_band": "Levels 2-3 (Routine)",
+            "soc_level_description": "Routine events or minor anomalies; monitor trends only.",
+            "soc_immediate_action": False,
+        }
+    if level <= 7:
+        return {
+            "soc_level_tier": "L2",
+            "soc_level_label": "Medium",
+            "soc_level_range": "5-9",
+            "soc_level_band": "Levels 5-7 (Monitor)",
+            "soc_level_description": "System errors or suspicious behavior that requires monitoring.",
+            "soc_immediate_action": False,
+        }
+    if level <= 9:
+        return {
+            "soc_level_tier": "L2",
+            "soc_level_label": "Medium",
+            "soc_level_range": "5-9",
+            "soc_level_band": "Levels 8-9 (Suspicious)",
+            "soc_level_description": "Likely probes or known attack attempts; investigate quickly.",
+            "soc_immediate_action": False,
+        }
+    if level <= 12:
+        return {
+            "soc_level_tier": "L3",
+            "soc_level_label": "High",
+            "soc_level_range": "10-15",
+            "soc_level_band": "Levels 10-12 (Confirmed Attack)",
+            "soc_level_description": "Confirmed exploit activity; immediate intervention required.",
+            "soc_immediate_action": True,
+        }
+    return {
+        "soc_level_tier": "L3",
+        "soc_level_label": "High",
+        "soc_level_range": "10-15",
+        "soc_level_band": "Levels 13-15 (Critical Threat)",
+        "soc_level_description": "Critical compromise risk (ransomware/root breach/data breach).",
+        "soc_immediate_action": True,
+    }
 
 
 # ── Batch Prediction ────────────────────────────────────
@@ -181,18 +264,38 @@ def predict_alerts(alerts):
         r["attack_category"] = attack_cat
         r["attack_confidence"] = round(float(atk_confs[i]), 2)
         r["rule_level"] = rule_level
-        r["rule_id"] = rule.get("id", "")
-        r["rule_description"] = rule.get("description", "")
-        r["agent_name"] = alert.get("agent", {}).get("name", "")
-        r["agent_id"] = alert.get("agent", {}).get("id", "")
-        r["agent_ip"] = alert.get("agent", {}).get("ip", "")
-        r["source_ip"] = alert.get("data", {}).get("srcip",
-                          alert.get("data", {}).get("src_ip", ""))
-        r["timestamp"] = alert.get("timestamp",
-                          alert.get("@timestamp", ""))
-        r["decoder_name"] = alert.get("decoder", {}).get("name", "")
+        r.update(_soc_level_context(rule_level))
+        r["rule_id"] = _get_path(alert, "rule.id", "_source.rule.id", default=rule.get("id", ""))
+        r["rule_description"] = _get_path(alert, "rule.description", "_source.rule.description", default=rule.get("description", ""))
+        r["title"] = r["rule_description"] or "Security Alert"
+        r["agent_name"] = _get_path(alert, "agent.name", "_source.agent.name")
+        r["agent_id"] = _get_path(alert, "agent.id", "_source.agent.id")
+        r["agent_ip"] = _get_path(alert, "agent.ip", "_source.agent.ip")
+        r["source_ip"] = _get_path(alert, "data.srcip", "data.src_ip", "_source.data.srcip", "_source.data.src_ip")
+        r["timestamp"] = _get_path(alert, "timestamp", "@timestamp", "_source.@timestamp")
+        r["decoder_name"] = _get_path(alert, "decoder.name", "_source.decoder.name")
         r["firedtimes"] = rule.get("firedtimes", 0)
         r["alert_id"] = alert.get("id", "")
+        r["source_tool"] = _get_path(alert, "source_tool", "source", "_source.source_tool", default="")
+
+        # Preserve file/path context for syscheck-style rules in the persisted alert description.
+        file_path = _get_path(
+            alert,
+            "syscheck.path",
+            "_source.syscheck.path",
+            "syscheck.file",
+            "_source.syscheck.file",
+            "data.path",
+            "_source.data.path",
+            default="",
+        )
+        full_log = _get_path(alert, "full_log", "_source.full_log", default="")
+        if file_path:
+            r["description"] = f"{r['rule_description']} | path={file_path}" if r["rule_description"] else f"path={file_path}"
+        elif full_log:
+            r["description"] = full_log
+        else:
+            r["description"] = r["rule_description"]
 
         # MITRE info
         mitre = rule.get("mitre", {})
@@ -207,6 +310,7 @@ def get_summary(results):
     """Generate severity_summary and category_summary from results."""
     sev_summary = {}
     cat_summary = {}
+    soc_level_summary = {}
     needs_review_count = 0
 
     for r in results:
@@ -216,6 +320,9 @@ def get_summary(results):
         c = r.get("attack_category", "Unknown")
         cat_summary[c] = cat_summary.get(c, 0) + 1
 
+        soc_level = r.get("soc_level_tier", "Unknown")
+        soc_level_summary[soc_level] = soc_level_summary.get(soc_level, 0) + 1
+
         if r.get("needs_review"):
             needs_review_count += 1
 
@@ -223,5 +330,6 @@ def get_summary(results):
         "total": len(results),
         "severity_summary": sev_summary,
         "category_summary": cat_summary,
+        "soc_level_summary": soc_level_summary,
         "needs_review": needs_review_count,
     }
