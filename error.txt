@@ -1,0 +1,28 @@
+Traceback (most recent call last):
+  File "C:\Users\takwa\Documents\soc-platform\soc-platform\backend\app.py", line 20, in <module>
+    from routes import register_routes
+  File "C:\Users\takwa\Documents\soc-platform\soc-platform\backend\routes.py", line 2, in <module>
+    from alert_predictor import predict_alerts, get_summary
+  File "C:\Users\takwa\Documents\soc-platform\soc-platform\backend\alert_predictor.py", line 2, in <module>
+    import pandas as pd
+  File "C:\Users\takwa\AppData\Roaming\Python\Python314\site-packages\pandas\__init__.py", line 49, in <module>
+    from pandas.core.api import (
+    ...<62 lines>...
+    )
+  File "C:\Users\takwa\AppData\Roaming\Python\Python314\site-packages\pandas\core\api.py", line 47, in <module>
+    from pandas.core.groupby import (
+    ...<2 lines>...
+    )
+  File "C:\Users\takwa\AppData\Roaming\Python\Python314\site-packages\pandas\core\groupby\__init__.py", line 1, in <module>
+    from pandas.core.groupby.generic import (
+    ...<3 lines>...
+    )
+  File "C:\Users\takwa\AppData\Roaming\Python\Python314\site-packages\pandas\core\groupby\generic.py", line 68, in <module>
+    from pandas.core.frame import DataFrame
+  File "C:\Users\takwa\AppData\Roaming\Python\Python314\site-packages\pandas\core\frame.py", line 188, in <module>
+    from pandas.core.series import Series
+  File "C:\Users\takwa\AppData\Roaming\Python\Python314\site-packages\pandas\core\series.py", line 35, in <module>
+    from pandas._libs import (
+    ...<3 lines>...
+    )
+ImportError: DLL load failed while importing reshape: Une stratégie de contrôle d’application a bloqué ce fichier.
