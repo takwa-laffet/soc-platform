@@ -23,3 +23,4 @@ services:
         value: ""
       - key: LM_STUDIO_BASE_URL
         value: ""
+    autoDeploy: true
