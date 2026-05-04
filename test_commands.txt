@@ -1,0 +1,18 @@
+# Test Backend Commands
+
+## 1. Test Health
+curl -s http://localhost:5001/api/health
+
+## 2. Test Login (Manager)
+curl -X POST http://localhost:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"admin@soc.local\",\"password\":\"Admin@SOC2024!\"}"
+
+## 3. Test Login (Analyst)
+curl -X POST http://localhost:5001/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d "{\"email\":\"analyst@soc.local\",\"password\":\"Analyst@SOC2024!\"}"
+
+## Expected Results
+- Health: {"status": "ok", "supabase": false, "ollama": {...}}
+- Login: {"user": {...}, "role": "SOC_MANAGER", "rememberMe": false}
