@@ -134,6 +134,9 @@ def _init_dev_users():
         _dev_users_by_email[user_row["email"]] = user_id
 
     print(f"Fallback users initialized: {[u['email'] for u in users_to_seed]}")
+    print("Available login credentials:")
+    print(f"  SOC Manager: {dev_manager_email} / {dev_manager_password}")
+    print(f"  SOC Analyst: {dev_analyst_email} / {dev_analyst_password}")
 
 
 def init_bcrypt(app):
